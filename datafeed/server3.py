@@ -143,7 +143,7 @@ def order_book(orders, book, stock_name):
 
 def generate_csv():
     """ Generate a CSV of order history. """
-    with open('test.csv', 'wb') as f:
+    with open('test.csv', 'w') as f:
         writer = csv.writer(f)
         for t, stock, side, order, size in orders(market()):
             if t > MARKET_OPEN + SIM_LENGTH:
@@ -241,7 +241,10 @@ class App(object):
         self._data_1    = order_book(read_csv(), self._book_1, 'ABC')
         self._data_2    = order_book(read_csv(), self._book_2, 'DEF')
         self._rt_start = datetime.now()
-        self._sim_start, _, _  = next(self._data_1)
+        try:
+            self._sim_start, _, _  = next(self._data_1)
+        except StopIteration:
+            print("No more data available in _data_1.")
         self.read_10_first_lines()
 
     @property
@@ -264,8 +267,11 @@ class App(object):
 
     def read_10_first_lines(self):
             for _ in iter(range(10)):
-                next(self._data_1)
-                next(self._data_2)
+                try:
+                    next(self._data_1)
+                    next(self._data_2)
+                except StopIteration:
+                    print("No more data available in _data_1.")
 
     @route('/query')
     def handle_query(self, x):
